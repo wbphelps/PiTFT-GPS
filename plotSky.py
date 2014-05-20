@@ -20,21 +20,25 @@ stars = []
 #    stars.append(ephem.star(name))
 #del stardata
 
-# there are 95 names in this list but only 94 in ephem.stars.db...
+# there are 94 names in this list and 94 in ephem.stars.db...
 starnames = ['Polaris','Sirius','Canopus','Arcturus','Vega','Capella','Rigel','Procyon','Achernar','Betelgeuse','Agena',
   'Altair','Aldebaran','Spica','Antares','Pollux','Fomalhaut','Mimosa','Deneb','Regulus','Adara','Castor','Shaula',
   'Bellatrix','Elnath','Alnilam','Alnair','Alnitak','Alioth','Kaus Australis','Dubhe','Wezen','Alcaid','Menkalinan',
   'Alhena','Peacock','Mirzam','Alphard','Hamal','Algieba','Nunki','Sirrah','Mirach','Saiph','Kochab','Rasalhague',
   'Algol','Almach','Denebola','Naos','Alphecca','Mizar','Sadr','Schedar','Etamin','Mintaka','Caph','Merak','Izar',
   'Enif','Phecda','Scheat','Alderamin','Markab','Menkar','Arneb','Gienah Corvi','Unukalhai','Tarazed','Cebalrai',
-  'Rasalgethi','Nihal','Nihal','Algenib','Alcyone','Vindemiatrix','Sadalmelik','Zaurak','Minkar','Albereo',
+  'Rasalgethi','Nihal','Algenib','Alcyone','Vindemiatrix','Sadalmelik','Zaurak','Minkar','Albereo',
   'Alfirk','Sulafat','Megrez','Sheliak','Atlas','Thuban','Alshain','Electra','Maia','Arkab Prior','Rukbat','Alcor',
   'Merope','Arkab Posterior','Taygeta']
 for name in starnames:
   stars.append(ephem.star(name))
 del starnames
 
-print 'Stars: {}'.format(len(stars))
+#print 'Stars: {}'.format(len(stars))
+
+centerX = 160 # center of sky circle
+centerY = 120
+diameter = 120
 
 def getxy(alt, azi): # alt, az in radians
 # thanks to John at Wobbleworks for the algorithm
@@ -42,8 +46,9 @@ def getxy(alt, azi): # alt, az in radians
     r = (R90 - alt)/R90
     x = r * math.sin(azi)
     y = r * math.cos(azi)
-    x = int(160 - x * 120) # flip E/W, scale to radius, center on plot
-    y = int(120 - y * 120) # scale to radius, center on plot
+#    x = int(centerX - x * diameter) # flip E/W, scale to radius, center on plot
+    x = int(centerX + x * diameter) # scale to radius, center on plot
+    y = int(centerY - y * diameter) # scale to radius, center on plot
     return (x,y)
 
 class plotStars():
@@ -56,7 +61,12 @@ class plotStars():
     for star in stars:
         star.compute(self.obs)
         if star.alt > 0:
-          pygame.draw.circle(self.screen, (255,255,255), getxy(star.alt, star.az), 1, 1)
+          sz = int(3-star.mag + 0.5) # use vmag of brighter stars for size
+          if sz<=1: # minimum radius - pygame draws small circles as funny squares
+            pygame.draw.circle(self.screen, (255,255,255), getxy(star.alt, star.az), 1, 1)
+          else:
+            pygame.draw.circle(self.screen, (255,255,255), getxy(star.alt, star.az), sz, 0)
+#            print 'star {} mag {} sz {}'.format(star.name, star.mag, sz)
         del star
 
 # plot 5 circles to test plot
@@ -65,13 +75,6 @@ class plotStars():
 #    pygame.draw.circle(screen, (0,255,0), getxy(math.radians(45), math.radians(90)), 5, 1) # green E
 #    pygame.draw.circle(screen, (0,0,255), getxy(math.radians(45), math.radians(180)), 5, 1) # blue S
 #    pygame.draw.circle(screen, (255,255,0), getxy(math.radians(45), math.radians(270)), 5, 1) # yellow W
-
-
-  def plotStar(self, name):
-    star = ephem.star(name)
-    star.compute(self.obs)
-    if star.alt > 0:
-      pygame.draw.circle(self.screen, (255,255,255), getxy(star.alt, star.az), 1, 1)
 
 
 class plotPlanets():
@@ -93,13 +96,13 @@ class plotPlanets():
     moon = ephem.Moon()
     moon.compute(obs)
     if (moon.alt>0):
-      pygame.draw.circle(self.screen, (255,255,255), getxy(moon.alt, moon.az), 6, 0)
+      pygame.draw.circle(self.screen, (255,255,255), getxy(moon.alt, moon.az), 7, 0)
       txt = self.pFont.render('Moon', 1, (255,255,255))
       self.pline -= 15
       self.screen.blit(txt, (1,self.pline))
 
     if (sun.alt>0):
-      pygame.draw.circle(self.screen, (255,255,0), getxy(sun.alt, sun.az), 6, 0)
+      pygame.draw.circle(self.screen, (255,255,0), getxy(sun.alt, sun.az), 7, 0)
       txt = self.pFont.render('Sun', 1, (255,255,0))
       self.pline -= 15
       self.screen.blit(txt, (1, self.pline))

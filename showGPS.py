@@ -17,14 +17,22 @@ White = pygame.Color('white')
 Black = (0,0,0)
 R90 = math.radians(90) # 90 degrees in radians
 
+centerX = 160 # center of sky circle
+centerY = 120
+diameter = 120
+
 def getxy(alt, azi): # alt, az in radians
 # thanks to John at Wobbleworks for the algorithm
     r = (R90 - alt)/R90
     x = r * math.sin(azi)
     y = r * math.cos(azi)
-    x = int(160 - x * 120) # flip E/W, scale to radius, center on plot
-    y = int(120 - y * 120) # scale to radius, center on plot
+#    x = int(centerX - x * diameter) # flip E/W, scale to radius, center on plot
+    x = int(centerX + x * diameter) # scale to radius, center on plot
+    y = int(centerY - y * diameter) # scale to radius, center on plot
     return (x,y)
+
+def getxyD(alt, azi): # alt, az in degrees
+    return getxy(math.radians(alt), math.radians(azi))
 
 class showGPS():
 
@@ -54,19 +62,27 @@ class showGPS():
     else:
         self.bgColor = (0,0,0)
 
-    pygame.draw.circle(self.BG, self.bgColor, (160,120), 120, 0)
-    pygame.draw.circle(self.BG, (0,255,255), (160,120), 120, 1)
+    pygame.draw.circle(self.BG, self.bgColor, (centerX,centerY), diameter, 0)
+    pygame.draw.circle(self.BG, (0,255,255), (centerX,centerY), diameter, 1)
 
     txtColor = Cyan
     txtFont = pygame.font.SysFont("Arial", 14, bold=True)
     txt = txtFont.render("N" , 1, txtColor)
-    self.BG.blit(txt, (155, 0))
+    rect = txt.get_rect()
+    rect.centerx, rect.centery = getxyD(7,0)
+    self.BG.blit(txt, rect)
     txt = txtFont.render("S" , 1, txtColor)
-    self.BG.blit(txt, (155, 222))
+    rect = txt.get_rect()
+    rect.centerx, rect.centery = getxyD(6,180)
+    self.BG.blit(txt, rect)
     txt = txtFont.render("E" , 1, txtColor)
-    self.BG.blit(txt, (43, 112))
+    rect = txt.get_rect()
+    rect.centerx, rect.centery = getxyD(6,90)
+    self.BG.blit(txt, rect)
     txt = txtFont.render("W" , 1, txtColor)
-    self.BG.blit(txt, (263, 112))
+    rect = txt.get_rect()
+    rect.centerx, rect.centery = getxyD(7,270)
+    self.BG.blit(txt, rect)
 
     plotStars(self.BG, obs, sun)
     plotPlanets(self.BG, obs, sun)
